@@ -1,0 +1,28 @@
+{
+"$schema": "https://opencode.ai/config.json",
+"agent": {
+  "build": {
+    "mode": "primary",
+    "prompt": "{file:./build_prompt.txt}"
+  },
+  "document": {
+    "prompt": "{file:./document_prompt.txt}",
+    "mode": "subagent",
+    "hidden": true,
+    "temperature": 0.5
+  }
+},
+"permission": {
+  // Rely on mcp-nixos for retrieving external data instead of web
+  "webfetch": "deny",
+  "shell": "deny",
+  "open": "allow"
+  },
+"mcp": {
+  "nixos-mcp": {
+    "enabled": true,
+    "type": "local",
+    "command": ["npx", "-y", "@modelcontextprotocol/inspector", "uvx", "mcp-nixos"]
+    },
+  },
+}

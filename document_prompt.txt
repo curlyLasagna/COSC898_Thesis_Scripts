@@ -1,0 +1,1 @@
+Based on the contents of flake.nix, generate a README.md file that instructs student on how to initialize the shell and other relevant information such as available commands, and any environment variables set.

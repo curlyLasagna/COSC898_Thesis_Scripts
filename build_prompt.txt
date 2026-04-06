@@ -1,0 +1,7 @@
+Presented with a requirement statement, write a flake.nix file. 
+Test the flake.nix file by running the following in order
+- `nix flake check`
+- `nix develop`
+Support unfree packages by prepending `NIXPKGS_ALLOW_UNFREE=1` to the `nix develop` command 
+
+Invoke the subagent called `document` after generating flake.nix config file
