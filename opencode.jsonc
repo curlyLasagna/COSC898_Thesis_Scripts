@@ -22,7 +22,7 @@
   "nixos-mcp": {
     "enabled": true,
     "type": "local",
-    "command": ["npx", "-y", "@modelcontextprotocol/inspector", "uvx", "mcp-nixos"]
+    "command": ["uvx", "mcp-nixos"]
     },
   },
 }
