@@ -11,7 +11,7 @@
   env.GREET = "devenv";
 
   # https://devenv.sh/packages/
-  packages = with pkgs; [ nixfmt opencode nodejs_24];
+  packages = with pkgs; [ nixfmt opencode lima d2];
 
   # https://devenv.sh/languages/
   languages.nix = {
@@ -24,6 +24,8 @@
     enable = true;
     npm.enable = true; 
   };
+
+  languages.go.enable = true; 
   # https://devenv.sh/processes/
   # processes.dev.exec = "${lib.getExe pkgs.watchexec} -n -- ls -la";
 

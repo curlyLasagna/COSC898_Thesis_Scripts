@@ -1,8 +1,8 @@
 {
-  description = "Rust development environment with MySQL";
+  description = "Dev shells for CS + data-science toolchains (Java/Flutter/Python/C/C++/Node/Rust/Go/.NET/R/MySQL + optional GUIs)";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -17,65 +17,96 @@
       let
         pkgs = import nixpkgs {
           inherit system;
+          config = {
+            allowUnfree = true; # e.g. vscode
+
+            # Some GUI dev tools depend on Electron versions that are sometimes
+            # marked insecure after EOL in nixpkgs-unstable.
+            permittedInsecurePackages = [
+              "electron-38.8.4"
+            ];
+          };
         };
+
+        jdk = pkgs.openjdk17;
+        lib = pkgs.lib;
       in
       {
         devShells.default = pkgs.mkShell {
-          buildInputs =
+          packages = (
             with pkgs;
             [
-              # Rust toolchain
+              # Common tooling
+              git
+
+              # Java (JDK 17) + build
+              jdk
+              maven
+
+              # Flutter / Dart
+              flutter
+              dart
+
+              # Python 3.12 + uv
+              python312
+              uv
+
+              # C/C++ toolchains + build tools
+              gcc
+              clang
+              cmake
+              gnumake
+              pkg-config
+
+              # Node.js (LTS)
+              nodejs_20
+
+              # Rust
+              rustup
               rustc
               cargo
-              clippy
-              rustfmt
-              rust-analyzer
 
-              # MySQL
+              # Go
+              go
+
+              # .NET SDK
+              dotnet-sdk_8
+
+              # Ruby + Bundler
+              ruby
+              bundler
+
+              # R
+              R
+
+              # MySQL server + client
               mysql84
-
-              # Useful CLI tools for database work
-              sqlx-cli
-              diesel-cli
-
-              # Build dependencies (needed for some Rust crates)
-              pkg-config
-              openssl
             ]
-            ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
-              # macOS specific dependencies
-              apple-sdk_15
-              libiconv
-            ];
-
-          # Environment variables
-          env = {
-            # MySQL connection string (customize as needed)
-            DATABASE_URL = "mysql://root:root@localhost:3306/devdb";
-
-            # Rust backtrace for better error messages
-            RUST_BACKTRACE = "1";
-          };
+          );
 
           shellHook = ''
-            echo "🦀 Rust development environment with MySQL"
-            echo ""
-            echo "Available tools:"
-            echo "  rustc     - $(rustc --version)"
-            echo "  cargo     - $(cargo --version)"
-            echo "  clippy    - $(cargo clippy --version)"
-            echo "  rustfmt   - $(rustfmt --version)"
-            echo "  mysql     - $(mysql --version)"
-            echo "  sqlx      - $(sqlx --version 2>/dev/null || echo 'installed')"
-            echo "  diesel    - $(diesel --version 2>/dev/null || echo 'installed')"
-            echo ""
-            echo "MySQL tips:"
-            echo "  Init:     mysqld --initialize-insecure --datadir=./mysqldata"
-            echo "  Start:    mysqld --datadir=./mysqldata --socket=./mysql.sock &"
-            echo "  Connect:  mysql -u root --socket=./mysql.sock"
-            echo "  Stop:     mysqladmin -u root --socket=./mysql.sock shutdown"
-            echo ""
-            echo "DATABASE_URL: $DATABASE_URL"
+            export JAVA_HOME="${jdk}"
+            export PATH="$JAVA_HOME/bin:$PATH"
+          '';
+        };
+
+        # Optional GUI tools (can be large and/or platform-limited).
+        devShells.gui = pkgs.mkShell {
+          packages =
+            (with pkgs; [
+              vscode
+              rstudio
+            ])
+            ++ lib.optionals pkgs.stdenv.isLinux (
+              with pkgs;
+              [
+                mysql-workbench
+              ]
+            );
+
+          shellHook = ''
+            export JAVA_HOME="${jdk}"
+            export PATH="$JAVA_HOME/bin:$PATH"
           '';
         };
       }

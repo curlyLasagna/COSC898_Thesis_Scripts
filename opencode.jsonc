@@ -2,6 +2,7 @@
 "$schema": "https://opencode.ai/config.json",
 "agent": {
   "build": {
+    "description": "Builds a nix flake configuration file",
     "mode": "primary",
     "prompt": "{file:./build_prompt.txt}"
   },
@@ -15,7 +16,7 @@
 "permission": {
   // Rely on mcp-nixos for retrieving external data instead of web
   "webfetch": "deny",
-  "shell": "deny",
+  "shell": "allow",
   "open": "allow"
   },
 "mcp": {
@@ -24,5 +25,10 @@
     "type": "local",
     "command": ["uvx", "mcp-nixos"]
     },
+  "d2-mcp": {
+    "enabled": true,
+    "type": "local",
+    "command": ["go", "run", "github.com/h0rv/d2-mcp@latest"]
+  },
   },
 }

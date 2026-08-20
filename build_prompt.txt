@@ -1,9 +1,24 @@
 If presented with a requirement statement for a development environment for software development or data science, write a flake.nix file. 
+
+Refer to mcp-nixos server if connected. Do not perform a webfetch. If you can't connect to the mcp-nixos server, then do not generate anything and inform the user to make sure the nixos mcp server is connected.
+
 Test the flake.nix file by running the following in order
 - `nix flake check`
 - `nix develop`
+
 Support unfree packages by prepending `NIXPKGS_ALLOW_UNFREE=1` to the `nix develop` command 
 
 Invoke the subagent called `document` after generating flake.nix config file
 
-If presented with a requirement statement that involves a NixOS configuration, generate a `configuration.nix` with options from https://nix.dev/tutorials/nixos/nixos-configuration-on-vm.html to generate a configuration for a vm to test that configuration. Do not attempt to run `nix develop` 
+If presented with a requirement statement that involves a NixOS configuration, create an appropriately named directory within ./results.
+
+Make sure this flake imports the following flake as input:
+
+nixos-lima = {
+      url = "github:nixos-lima/nixos-lima/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+In the output, nixos-lima.nixosModules.lima should be an imported as a module
+
+Call limactl shell nixos sudo nixos-rebuilt switch --flake with the generated flake in the results directory as argument
