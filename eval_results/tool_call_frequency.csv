@@ -1,0 +1,9 @@
+tool_name,call_count,percentage_of_total,trials_using_tool,trial_prevalence_pct,mean_calls_per_trial
+run_command,713,54.26%,39,92.86%,16.98
+view_file,338,25.72%,38,90.48%,8.05
+list_dir,77,5.86%,18,42.86%,1.83
+write_to_file,50,3.81%,12,28.57%,1.19
+find_by_name,47,3.58%,24,57.14%,1.12
+grep_search,45,3.42%,29,69.05%,1.07
+manage_task,44,3.35%,16,38.10%,1.05
+TOTAL,1314,100.00%,42,100.00%,31.29

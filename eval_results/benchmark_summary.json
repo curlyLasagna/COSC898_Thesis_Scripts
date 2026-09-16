@@ -1,0 +1,837 @@
+{
+  "timestamp": "2026-09-16T00:41:55.360232",
+  "status": "COMPLETED",
+  "num_samples": 3,
+  "k_values": [
+    1,
+    3
+  ],
+  "overall_scores": {
+    "pass@1": 0.9285714285714286,
+    "pass@3": 1.0
+  },
+  "perf_summary": {
+    "mean_duration_s": 114.3480225952381,
+    "mean_turns": 1.0,
+    "mean_total_tokens": 251343.66666666666,
+    "mean_thinking_tokens": 3485.785714285714
+  },
+  "tasks": [
+    {
+      "task_type": "greenfield",
+      "title": "computer science",
+      "instruction": "Install Java JDK 17 (includes the JRE). Set JAVA_HOME to the JDK install directory (not a separate JRE folder) and add $JAVA_HOME/bin to your PATH. Install Visual Studio Code, then install the Java extension pack (Language Support for Java by Red Hat, Debugger for Java, Java Test Runner, Maven for Java). Restart VS Code and verify with `java -version` and `javac -version`.",
+      "dependency_list": [
+        "java",
+        "javac",
+        "code"
+      ],
+      "track": "computer science",
+      "task_idx": 0,
+      "n": 3,
+      "c": 3,
+      "scores": {
+        "pass@1": 1.0,
+        "pass@3": 1.0
+      },
+      "samples": [
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "5283d271-522c-4f6f-b1de-23efa27b63ed",
+          "status": "SUCCESS",
+          "duration_seconds": 100.180635,
+          "num_turns": 1,
+          "total_tokens": 264128,
+          "input_tokens": 257244,
+          "output_tokens": 6884,
+          "thinking_tokens": 3445,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_00/sample_00"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "e3f11fde-9054-41c1-8fba-dd5a9749bb7f",
+          "status": "SUCCESS",
+          "duration_seconds": 86.642959,
+          "num_turns": 1,
+          "total_tokens": 232958,
+          "input_tokens": 228032,
+          "output_tokens": 4926,
+          "thinking_tokens": 2522,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_00/sample_01"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "b7a70aed-4dbc-4c03-b2e2-bd0c3d4138bd",
+          "status": "SUCCESS",
+          "duration_seconds": 93.194995,
+          "num_turns": 1,
+          "total_tokens": 207951,
+          "input_tokens": 200071,
+          "output_tokens": 7880,
+          "thinking_tokens": 4433,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_00/sample_02"
+        }
+      ]
+    },
+    {
+      "task_type": "greenfield",
+      "title": "computer science",
+      "instruction": "Install the Flutter SDK and ensure `flutter` is on your PATH. Run `flutter doctor` and follow the prompts to install/fix any missing platform toolchains it reports.",
+      "dependency_list": [
+        "flutter",
+        "dart"
+      ],
+      "track": "computer science",
+      "task_idx": 1,
+      "n": 3,
+      "c": 3,
+      "scores": {
+        "pass@1": 1.0,
+        "pass@3": 1.0
+      },
+      "samples": [
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "9d95cddc-9fcb-4144-9fc1-62f02724ac4f",
+          "status": "SUCCESS",
+          "duration_seconds": 94.035908,
+          "num_turns": 1,
+          "total_tokens": 219476,
+          "input_tokens": 213313,
+          "output_tokens": 6163,
+          "thinking_tokens": 3382,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_01/sample_00"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "1eb63276-a888-4809-bd2f-d279e3f3f9f8",
+          "status": "SUCCESS",
+          "duration_seconds": 131.923569,
+          "num_turns": 1,
+          "total_tokens": 253664,
+          "input_tokens": 245642,
+          "output_tokens": 8022,
+          "thinking_tokens": 4024,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_01/sample_01"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "e238a68d-c411-44df-a490-f9a7db31d5fa",
+          "status": "ERROR",
+          "duration_seconds": 1299.107915,
+          "num_turns": 1,
+          "total_tokens": 287096,
+          "input_tokens": 281106,
+          "output_tokens": 5990,
+          "thinking_tokens": 2745,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_01/sample_02"
+        }
+      ]
+    },
+    {
+      "task_type": "greenfield",
+      "title": "computer science",
+      "instruction": "Install Python 3.12 and the `uv` package manager. In your project directory, run `uv add` for the following packages: flask and flask-restful, then `uv sync`. Verify with `python3 --version` and `uv --version`.",
+      "dependency_list": [
+        "python3",
+        "uv"
+      ],
+      "track": "computer science",
+      "task_idx": 2,
+      "n": 3,
+      "c": 3,
+      "scores": {
+        "pass@1": 1.0,
+        "pass@3": 1.0
+      },
+      "samples": [
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "92e6f325-13b3-4f98-adf6-9c4115cf11dd",
+          "status": "SUCCESS",
+          "duration_seconds": 5.010287,
+          "num_turns": 1,
+          "total_tokens": 40868,
+          "input_tokens": 40386,
+          "output_tokens": 482,
+          "thinking_tokens": 291,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_02/sample_00"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "d15417ac-afff-46c2-bc6a-48f0290a0716",
+          "status": "SUCCESS",
+          "duration_seconds": 101.554018,
+          "num_turns": 1,
+          "total_tokens": 341876,
+          "input_tokens": 331499,
+          "output_tokens": 10377,
+          "thinking_tokens": 5530,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_02/sample_01"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "6ba4565a-50bb-44fc-9ee3-d76368d73be9",
+          "status": "SUCCESS",
+          "duration_seconds": 133.674054,
+          "num_turns": 1,
+          "total_tokens": 444106,
+          "input_tokens": 433419,
+          "output_tokens": 10687,
+          "thinking_tokens": 5107,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_02/sample_02"
+        }
+      ]
+    },
+    {
+      "task_type": "greenfield",
+      "title": "computer science",
+      "instruction": "Install GCC (C/C++) and build tools. Verify with `gcc --version`, `g++ --version`, `cmake --version`, and `make --version`, then build the project using the provided build instructions.",
+      "dependency_list": [
+        "gcc",
+        "g++",
+        "cmake",
+        "make"
+      ],
+      "track": "computer science",
+      "task_idx": 3,
+      "n": 3,
+      "c": 3,
+      "scores": {
+        "pass@1": 1.0,
+        "pass@3": 1.0
+      },
+      "samples": [
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "dc131233-a529-4a3e-b2ab-4eab93a91a66",
+          "status": "SUCCESS",
+          "duration_seconds": 113.336992,
+          "num_turns": 1,
+          "total_tokens": 455431,
+          "input_tokens": 444174,
+          "output_tokens": 11257,
+          "thinking_tokens": 4774,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_03/sample_00"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "7252c692-9727-41b3-949c-942632b5817f",
+          "status": "SUCCESS",
+          "duration_seconds": 2.790684,
+          "num_turns": 1,
+          "total_tokens": 13278,
+          "input_tokens": 13096,
+          "output_tokens": 182,
+          "thinking_tokens": 130,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_03/sample_01"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "0210c722-1529-499a-9abb-b8f7d438cc4d",
+          "status": "SUCCESS",
+          "duration_seconds": 26.361427,
+          "num_turns": 1,
+          "total_tokens": 162958,
+          "input_tokens": 160311,
+          "output_tokens": 2647,
+          "thinking_tokens": 1012,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_03/sample_02"
+        }
+      ]
+    },
+    {
+      "task_type": "greenfield",
+      "title": "computer science",
+      "instruction": "Install Clang (C/C++) and build tools. Verify with `clang --version`, `clang++ --version`, `cmake --version`, and `make --version`, then build the project using the provided build instructions.",
+      "dependency_list": [
+        "clang",
+        "clang++",
+        "cmake",
+        "make"
+      ],
+      "track": "computer science",
+      "task_idx": 4,
+      "n": 3,
+      "c": 2,
+      "scores": {
+        "pass@1": 0.6666666666666667,
+        "pass@3": 1.0
+      },
+      "samples": [
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "7c4f454b-582d-4437-841b-8c340759c0a0",
+          "status": "SUCCESS",
+          "duration_seconds": 46.994761,
+          "num_turns": 1,
+          "total_tokens": 244732,
+          "input_tokens": 239356,
+          "output_tokens": 5376,
+          "thinking_tokens": 2013,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_04/sample_00"
+        },
+        {
+          "passed": false,
+          "reason": "No flake.nix was generated",
+          "conversation_id": "63f0dd8c-fd10-4246-b182-c441a2702e7e",
+          "status": "SUCCESS",
+          "duration_seconds": 32.382615,
+          "num_turns": 1,
+          "total_tokens": 150533,
+          "input_tokens": 147896,
+          "output_tokens": 2637,
+          "thinking_tokens": 938,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_04/sample_01"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "62bcae85-32b3-45b5-b74d-3534659e5e3f",
+          "status": "SUCCESS",
+          "duration_seconds": 65.374812,
+          "num_turns": 1,
+          "total_tokens": 193409,
+          "input_tokens": 188394,
+          "output_tokens": 5015,
+          "thinking_tokens": 2432,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_04/sample_02"
+        }
+      ]
+    },
+    {
+      "task_type": "greenfield",
+      "title": "computer science",
+      "instruction": "Install Node.js (LTS) so you have `node` and `npm`. Verify with `node --version` and `npm --version`, then run `npm install` in the project directory.",
+      "dependency_list": [
+        "node",
+        "npm"
+      ],
+      "track": "computer science",
+      "task_idx": 5,
+      "n": 3,
+      "c": 3,
+      "scores": {
+        "pass@1": 1.0,
+        "pass@3": 1.0
+      },
+      "samples": [
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "88f32990-854d-4ea6-8c04-81ab306a7187",
+          "status": "SUCCESS",
+          "duration_seconds": 1.238616,
+          "num_turns": 1,
+          "total_tokens": 13251,
+          "input_tokens": 13089,
+          "output_tokens": 162,
+          "thinking_tokens": 110,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_05/sample_00"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "1be07b81-4c4c-4270-8d6a-0926e22ec1eb",
+          "status": "SUCCESS",
+          "duration_seconds": 83.638964,
+          "num_turns": 1,
+          "total_tokens": 202614,
+          "input_tokens": 196222,
+          "output_tokens": 6392,
+          "thinking_tokens": 3198,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_05/sample_01"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "4a5c31db-e81c-4053-a16f-0f0d8664054d",
+          "status": "SUCCESS",
+          "duration_seconds": 164.01598,
+          "num_turns": 1,
+          "total_tokens": 349768,
+          "input_tokens": 339178,
+          "output_tokens": 10590,
+          "thinking_tokens": 6068,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_05/sample_02"
+        }
+      ]
+    },
+    {
+      "task_type": "greenfield",
+      "title": "computer science",
+      "instruction": "Install Rust using rustup, then ensure `rustc` and `cargo` are available. Verify with `rustc --version` and `cargo --version`, then run `cargo build`.",
+      "dependency_list": [
+        "rustup",
+        "rustc",
+        "cargo"
+      ],
+      "track": "computer science",
+      "task_idx": 6,
+      "n": 3,
+      "c": 3,
+      "scores": {
+        "pass@1": 1.0,
+        "pass@3": 1.0
+      },
+      "samples": [
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "01e2886d-0e5d-452f-8146-dd6f8679d4b0",
+          "status": "SUCCESS",
+          "duration_seconds": 171.412697,
+          "num_turns": 1,
+          "total_tokens": 350528,
+          "input_tokens": 341697,
+          "output_tokens": 8831,
+          "thinking_tokens": 3705,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_06/sample_00"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "72a428e1-56f2-4517-be6c-17c30054087d",
+          "status": "SUCCESS",
+          "duration_seconds": 1.662908,
+          "num_turns": 1,
+          "total_tokens": 13286,
+          "input_tokens": 13088,
+          "output_tokens": 198,
+          "thinking_tokens": 146,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_06/sample_01"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "732097e2-8430-44c9-a168-50cb58688b82",
+          "status": "SUCCESS",
+          "duration_seconds": 97.119218,
+          "num_turns": 1,
+          "total_tokens": 324165,
+          "input_tokens": 316337,
+          "output_tokens": 7828,
+          "thinking_tokens": 3633,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_06/sample_02"
+        }
+      ]
+    },
+    {
+      "task_type": "greenfield",
+      "title": "computer science",
+      "instruction": "Install Go and confirm the `go` command is available. Verify with `go version`, then run `go test ./...` in the project directory.",
+      "dependency_list": [
+        "go"
+      ],
+      "track": "computer science",
+      "task_idx": 7,
+      "n": 3,
+      "c": 3,
+      "scores": {
+        "pass@1": 1.0,
+        "pass@3": 1.0
+      },
+      "samples": [
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "a387d9e2-faab-4a5b-acfa-850214b4c7c8",
+          "status": "SUCCESS",
+          "duration_seconds": 103.2445,
+          "num_turns": 1,
+          "total_tokens": 216260,
+          "input_tokens": 210677,
+          "output_tokens": 5583,
+          "thinking_tokens": 2376,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_07/sample_00"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "8da3b1ae-7f5f-40dd-b800-f778b22cc02a",
+          "status": "SUCCESS",
+          "duration_seconds": 90.592079,
+          "num_turns": 1,
+          "total_tokens": 218416,
+          "input_tokens": 209695,
+          "output_tokens": 8721,
+          "thinking_tokens": 5187,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_07/sample_01"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "61f7e559-443e-49ec-b850-8a785a634d20",
+          "status": "SUCCESS",
+          "duration_seconds": 68.294025,
+          "num_turns": 1,
+          "total_tokens": 205583,
+          "input_tokens": 202277,
+          "output_tokens": 3306,
+          "thinking_tokens": 1512,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_07/sample_02"
+        }
+      ]
+    },
+    {
+      "task_type": "greenfield",
+      "title": "computer science",
+      "instruction": "Install the .NET SDK (not just the runtime). Verify with `dotnet --info`, then run `dotnet restore` and `dotnet build`.",
+      "dependency_list": [
+        "dotnet"
+      ],
+      "track": "computer science",
+      "task_idx": 8,
+      "n": 3,
+      "c": 3,
+      "scores": {
+        "pass@1": 1.0,
+        "pass@3": 1.0
+      },
+      "samples": [
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "adc69e5b-0e8e-4398-a09a-d7d0639a3c95",
+          "status": "SUCCESS",
+          "duration_seconds": 152.924004,
+          "num_turns": 1,
+          "total_tokens": 389629,
+          "input_tokens": 378538,
+          "output_tokens": 11091,
+          "thinking_tokens": 5644,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_08/sample_00"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "154bbe18-51ba-49fd-bec5-09dfafa6fea8",
+          "status": "SUCCESS",
+          "duration_seconds": 119.610707,
+          "num_turns": 1,
+          "total_tokens": 314729,
+          "input_tokens": 305271,
+          "output_tokens": 9458,
+          "thinking_tokens": 5273,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_08/sample_01"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "57c7e487-898f-4f7a-897a-77f922cb8256",
+          "status": "SUCCESS",
+          "duration_seconds": 27.326756,
+          "num_turns": 1,
+          "total_tokens": 110957,
+          "input_tokens": 108209,
+          "output_tokens": 2748,
+          "thinking_tokens": 802,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_08/sample_02"
+        }
+      ]
+    },
+    {
+      "task_type": "greenfield",
+      "title": "computer science",
+      "instruction": "Install Ruby and Bundler. Verify with `ruby --version` and `bundle --version`, then run `bundle install`.",
+      "dependency_list": [
+        "ruby",
+        "bundle"
+      ],
+      "track": "computer science",
+      "task_idx": 9,
+      "n": 3,
+      "c": 2,
+      "scores": {
+        "pass@1": 0.6666666666666667,
+        "pass@3": 1.0
+      },
+      "samples": [
+        {
+          "passed": false,
+          "reason": "No flake.nix was generated",
+          "conversation_id": "0f4539b7-8d8e-4bea-9b6c-401682a396a2",
+          "status": "SUCCESS",
+          "duration_seconds": 112.60724,
+          "num_turns": 1,
+          "total_tokens": 301724,
+          "input_tokens": 292199,
+          "output_tokens": 9525,
+          "thinking_tokens": 4889,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_09/sample_00"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "e5324f2c-8aea-44d6-9423-cee6a204878b",
+          "status": "SUCCESS",
+          "duration_seconds": 48.896957,
+          "num_turns": 1,
+          "total_tokens": 217135,
+          "input_tokens": 213300,
+          "output_tokens": 3835,
+          "thinking_tokens": 1371,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_09/sample_01"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "3d802609-f3e9-4ed6-b3d6-0932e983d444",
+          "status": "SUCCESS",
+          "duration_seconds": 81.543666,
+          "num_turns": 1,
+          "total_tokens": 241051,
+          "input_tokens": 235082,
+          "output_tokens": 5969,
+          "thinking_tokens": 2113,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_09/sample_02"
+        }
+      ]
+    },
+    {
+      "task_type": "greenfield",
+      "title": "data science",
+      "instruction": "Install R (latest stable). Ensure the `R` executable is on your PATH, then verify with `R --version` and starting an interactive session with `R`.",
+      "dependency_list": [
+        "R"
+      ],
+      "track": "data science",
+      "task_idx": 10,
+      "n": 3,
+      "c": 3,
+      "scores": {
+        "pass@1": 1.0,
+        "pass@3": 1.0
+      },
+      "samples": [
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "dc47a219-31d7-4809-8e43-694476037e36",
+          "status": "SUCCESS",
+          "duration_seconds": 40.660506,
+          "num_turns": 1,
+          "total_tokens": 169992,
+          "input_tokens": 165298,
+          "output_tokens": 4694,
+          "thinking_tokens": 2143,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_10/sample_00"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "85121186-6e80-46d5-ba41-75577f9e8247",
+          "status": "SUCCESS",
+          "duration_seconds": 35.290201,
+          "num_turns": 1,
+          "total_tokens": 125197,
+          "input_tokens": 121533,
+          "output_tokens": 3664,
+          "thinking_tokens": 1687,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_10/sample_01"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "78ffe947-7b8a-4bac-94fe-3518027d2290",
+          "status": "SUCCESS",
+          "duration_seconds": 35.719253,
+          "num_turns": 1,
+          "total_tokens": 166695,
+          "input_tokens": 162948,
+          "output_tokens": 3747,
+          "thinking_tokens": 1807,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_10/sample_02"
+        }
+      ]
+    },
+    {
+      "task_type": "greenfield",
+      "title": "data science",
+      "instruction": "Install RStudio Desktop and launch it once to confirm it detects your R installation. If it does not, configure RStudio to point to the installed R version in its settings.",
+      "dependency_list": [
+        "R",
+        "rstudio"
+      ],
+      "track": "data science",
+      "task_idx": 11,
+      "n": 3,
+      "c": 3,
+      "scores": {
+        "pass@1": 1.0,
+        "pass@3": 1.0
+      },
+      "samples": [
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "ace558f6-0c59-4190-94af-08e02f5d9ea2",
+          "status": "SUCCESS",
+          "duration_seconds": 106.374542,
+          "num_turns": 1,
+          "total_tokens": 387313,
+          "input_tokens": 374309,
+          "output_tokens": 13004,
+          "thinking_tokens": 6358,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_11/sample_00"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "c368c743-7197-4d25-862f-b3ba1606b7d9",
+          "status": "SUCCESS",
+          "duration_seconds": 119.820924,
+          "num_turns": 1,
+          "total_tokens": 424081,
+          "input_tokens": 414649,
+          "output_tokens": 9432,
+          "thinking_tokens": 4526,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_11/sample_01"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "e64d2c83-51e7-43af-9ae5-ea9cfe4190a5",
+          "status": "SUCCESS",
+          "duration_seconds": 121.776559,
+          "num_turns": 1,
+          "total_tokens": 410125,
+          "input_tokens": 397634,
+          "output_tokens": 12491,
+          "thinking_tokens": 6716,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_11/sample_02"
+        }
+      ]
+    },
+    {
+      "task_type": "greenfield",
+      "title": "data science",
+      "instruction": "Install MySQL Server, start the database service, and set a root password. Verify by connecting with `mysql -u root -p` and running `SELECT VERSION();`.",
+      "dependency_list": [
+        "mysqld",
+        "mysql"
+      ],
+      "track": "data science",
+      "task_idx": 12,
+      "n": 3,
+      "c": 2,
+      "scores": {
+        "pass@1": 0.6666666666666667,
+        "pass@3": 1.0
+      },
+      "samples": [
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "a11075e7-c70b-483b-a0d2-637d37c2a579",
+          "status": "SUCCESS",
+          "duration_seconds": 189.049268,
+          "num_turns": 1,
+          "total_tokens": 349584,
+          "input_tokens": 329660,
+          "output_tokens": 19924,
+          "thinking_tokens": 11760,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_12/sample_00"
+        },
+        {
+          "passed": false,
+          "reason": "No flake.nix was generated",
+          "conversation_id": "2010c73a-88ec-4d0c-a77b-7dc4aee8e725",
+          "status": "SUCCESS",
+          "duration_seconds": 46.305388,
+          "num_turns": 1,
+          "total_tokens": 179073,
+          "input_tokens": 174915,
+          "output_tokens": 4158,
+          "thinking_tokens": 1998,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_12/sample_01"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "353aef2b-2357-4b36-9aa2-877fbba3f62d",
+          "status": "SUCCESS",
+          "duration_seconds": 115.967876,
+          "num_turns": 1,
+          "total_tokens": 405512,
+          "input_tokens": 393686,
+          "output_tokens": 11826,
+          "thinking_tokens": 6363,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_12/sample_02"
+        }
+      ]
+    },
+    {
+      "task_type": "greenfield",
+      "title": "data science",
+      "instruction": "Install MySQL Workbench (GUI client). Create a new connection to your local MySQL server and test the connection using the credentials you set.",
+      "dependency_list": [
+        "mysql-workbench",
+        "mysqld",
+        "mysql"
+      ],
+      "track": "data science",
+      "task_idx": 13,
+      "n": 3,
+      "c": 3,
+      "scores": {
+        "pass@1": 1.0,
+        "pass@3": 1.0
+      },
+      "samples": [
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "9f072ccd-e04c-4593-a533-5bb192f3cc01",
+          "status": "SUCCESS",
+          "duration_seconds": 157.27378,
+          "num_turns": 1,
+          "total_tokens": 445111,
+          "input_tokens": 430969,
+          "output_tokens": 14142,
+          "thinking_tokens": 6296,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_13/sample_00"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "36155cde-94ee-4ad4-ae19-5a686905a6ec",
+          "status": "SUCCESS",
+          "duration_seconds": 96.02465,
+          "num_turns": 1,
+          "total_tokens": 276703,
+          "input_tokens": 266477,
+          "output_tokens": 10226,
+          "thinking_tokens": 4750,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_13/sample_01"
+        },
+        {
+          "passed": true,
+          "reason": "All checks passed",
+          "conversation_id": "10a60a32-8760-4fbe-9b6a-42bb1688dc26",
+          "status": "SUCCESS",
+          "duration_seconds": 81.660054,
+          "num_turns": 1,
+          "total_tokens": 235488,
+          "input_tokens": 227750,
+          "output_tokens": 7738,
+          "thinking_tokens": 3194,
+          "trial_dir": "/Users/luis/Code/Thesis_Implementation/eval_results/task_13/sample_02"
+        }
+      ]
+    }
+  ]
+}

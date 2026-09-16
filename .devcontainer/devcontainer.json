@@ -1,0 +1,12 @@
+{
+  "name": "CS environment benchmark (Ubuntu 24.04)",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "ubuntu",
+  "customizations": {
+    "vscode": {
+      "extensions": []
+    }
+  }
+}

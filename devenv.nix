@@ -11,7 +11,13 @@
   env.GREET = "devenv";
 
   # https://devenv.sh/packages/
-  packages = with pkgs; [ nixfmt opencode lima d2];
+  packages = with pkgs; [
+    nixfmt
+    opencode
+    lima
+    d2
+    jq
+  ];
 
   # https://devenv.sh/languages/
   languages.nix = {
@@ -22,10 +28,10 @@
 
   languages.javascript = {
     enable = true;
-    npm.enable = true; 
+    npm.enable = true;
   };
 
-  languages.go.enable = true; 
+  languages.go.enable = true;
   # https://devenv.sh/processes/
   # processes.dev.exec = "${lib.getExe pkgs.watchexec} -n -- ls -la";
 
@@ -34,7 +40,7 @@
 
   # https://devenv.sh/scripts/
   # scripts.hello.exec = ''
-    # echo Hi
+  # echo Hi
   # '';
 
   # https://devenv.sh/basics/
