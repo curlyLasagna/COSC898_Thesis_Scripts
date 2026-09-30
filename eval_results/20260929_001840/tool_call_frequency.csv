@@ -1,0 +1,10 @@
+tool_name,call_count,percentage_of_total,trials_using_tool,trial_prevalence_pct,mean_calls_per_trial
+run_command,1058,65.07%,42,100.00%,25.19
+view_file,316,19.43%,42,100.00%,7.52
+call_mcp_tool,146,8.98%,42,100.00%,3.48
+write_to_file,71,4.37%,42,100.00%,1.69
+manage_task,26,1.60%,9,21.43%,0.62
+search_web,5,0.31%,2,4.76%,0.12
+replace_file_content,3,0.18%,2,4.76%,0.07
+schedule,1,0.06%,1,2.38%,0.02
+TOTAL,1626,100.00%,42,100.00%,38.71
