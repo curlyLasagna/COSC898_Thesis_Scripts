@@ -8,6 +8,7 @@ Supports:
 
 import os
 import sys
+import csv
 import json
 import math
 import shutil
@@ -16,6 +17,7 @@ import datetime
 import argparse
 import subprocess
 from pathlib import Path
+from collections import Counter, defaultdict
 from typing import List, Dict, Any, Optional
 
 _script_dir = Path(__file__).resolve().parent
@@ -27,6 +29,15 @@ else:
     REPO_ROOT = _script_dir
 
 DETECT_SCRIPT = REPO_ROOT / ".agents" / "skills" / "course-flake-generator" / "scripts" / "detect-project-requirements.py"
+SCRATCH_DIR = Path.home() / ".gemini" / "antigravity-cli" / "scratch"
+
+def clean_scratch_directory():
+    """Deletes the antigravity CLI scratch directory to prevent cross-trial leakage."""
+    if SCRATCH_DIR.exists():
+        try:
+            shutil.rmtree(SCRATCH_DIR)
+        except Exception as e:
+            print(f"Warning: Failed to delete scratch directory {SCRATCH_DIR}: {e}", file=sys.stderr)
 
 def compute_pass_at_k(n: int, c: int, k: int) -> float:
     """
@@ -46,7 +57,7 @@ def copy_project_isolated(src: Path, dst: Path):
     def ignore_patterns(folder, names):
         ignored = {
             ".git", ".devenv", ".direnv", "result", "__pycache__",
-            ".ipynb_checkpoints", "flake.nix", "flake.lock"
+            ".ipynb_checkpoints", "flake.nix", "flake.lock", ".agents"
         }
         return {n for n in names if n in ignored or n.endswith(".pyc")}
 
@@ -57,6 +68,73 @@ def copy_project_isolated(src: Path, dst: Path):
     # Initialize a clean git repository so Nix flakes can track files
     subprocess.run(["git", "init"], cwd=dst, capture_output=True)
     subprocess.run(["git", "add", "-A"], cwd=dst, capture_output=True)
+
+def link_agents_directory(target_dir: Path, provide_skill: bool = True):
+    """
+    Ensures .agents directory is available in the trial workspace for skill/tool discovery.
+    Configures git exclude to prevent .agents from polluting the trial git index or flake checks.
+    If provide_skill is False, the custom course-flake-generator skill is excluded.
+    """
+    agents_src = REPO_ROOT / ".agents"
+    if not agents_src.exists():
+        return
+
+    git_dir = target_dir / ".git"
+    if git_dir.exists():
+        exclude_file = git_dir / "info" / "exclude"
+        exclude_file.parent.mkdir(parents=True, exist_ok=True)
+        current_content = exclude_file.read_text(encoding="utf-8") if exclude_file.exists() else ""
+        if ".agents" not in current_content:
+            with open(exclude_file, "a", encoding="utf-8") as f:
+                f.write("\n.agents\n")
+
+    agents_dst = target_dir / ".agents"
+    if agents_dst.is_symlink() or agents_dst.exists():
+        try:
+            if agents_dst.is_symlink() or agents_dst.is_file():
+                agents_dst.unlink()
+            elif agents_dst.is_dir():
+                shutil.rmtree(agents_dst)
+        except Exception:
+            pass
+
+    if provide_skill:
+        try:
+            agents_dst.symlink_to(agents_src, target_is_directory=True)
+        except OSError:
+            try:
+                shutil.copytree(agents_src, agents_dst)
+            except Exception as e:
+                print(f"Warning: Failed to link/copy .agents to {agents_dst}: {e}", file=sys.stderr)
+    else:
+        try:
+            agents_dst.mkdir(parents=True, exist_ok=True)
+            for item in agents_src.iterdir():
+                if item.name == "skills":
+                    skills_dst = agents_dst / "skills"
+                    skills_dst.mkdir(parents=True, exist_ok=True)
+                    for skill_item in item.iterdir():
+                        if skill_item.name in ("course-flake-generator", "course-flake-generate"):
+                            continue
+                        skill_target = skills_dst / skill_item.name
+                        try:
+                            skill_target.symlink_to(skill_item, target_is_directory=skill_item.is_dir())
+                        except OSError:
+                            if skill_item.is_dir():
+                                shutil.copytree(skill_item, skill_target)
+                            else:
+                                shutil.copy2(skill_item, skill_target)
+                elif item.name != ".git":
+                    dst_item = agents_dst / item.name
+                    try:
+                        dst_item.symlink_to(item, target_is_directory=item.is_dir())
+                    except OSError:
+                        if item.is_dir():
+                            shutil.copytree(item, dst_item)
+                        else:
+                            shutil.copy2(item, dst_item)
+        except Exception as e:
+            print(f"Warning: Failed to setup .agents directory without skill at {agents_dst}: {e}", file=sys.stderr)
 
 def detect_project_modules(project_path: Path) -> Dict[str, Any]:
     """Runs detect-project-requirements.py on a project directory."""
@@ -101,6 +179,8 @@ def find_flake_dirs(search_root: Path) -> List[Path]:
     flakes = sorted(list(search_root.rglob("flake.nix")))
     dirs = []
     for f in flakes:
+        if ".agents" in f.parts:
+            continue
         p = f.parent
         if p not in dirs:
             dirs.append(p)
@@ -176,14 +256,31 @@ def run_greenfield_trial(
     dependencies: List[str],
     trial_dir: Path,
     print_timeout: str = "10m0s",
-    model: Optional[str] = None
+    model: Optional[str] = None,
+    keep_scratch: bool = False,
+    provide_skill: bool = True
 ) -> Dict[str, Any]:
     """Executes a single trial for a greenfield natural language prompt."""
+    if not keep_scratch:
+        clean_scratch_directory()
+    if trial_dir.exists():
+        shutil.rmtree(trial_dir)
     trial_dir.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["git", "init"], cwd=trial_dir, capture_output=True)
+    link_agents_directory(trial_dir, provide_skill=provide_skill)
 
+    if provide_skill:
+        prompt = (
+            f"/course-flake-generator Use the course-flake-generator skill to create a Nix flake "
+            f"development environment in the current working directory (.): {instruction}"
+        )
+    else:
+        prompt = (
+            f"Create a Nix flake development environment in the current working directory (.): {instruction}"
+        )
     cmd = [
         "agy",
-        "-p", f"/course-flake-generate {instruction}",
+        "-p", prompt,
         "--dangerously-skip-permissions",
         "--output-format", "json",
         "--print-timeout", print_timeout
@@ -222,6 +319,7 @@ def run_greenfield_trial(
         "input_tokens": usage.get("input_tokens", 0),
         "output_tokens": usage.get("output_tokens", 0),
         "thinking_tokens": usage.get("thinking_tokens", 0),
+        "provide_skill": provide_skill,
         "trial_dir": str(trial_dir)
     }
     save_trial_artifacts(trial_dir, record["conversation_id"], telemetry, record)
@@ -253,17 +351,32 @@ def run_brownfield_trial(
     task: Dict[str, Any],
     trial_dir: Path,
     print_timeout: str = "10m0s",
-    model: Optional[str] = None
+    model: Optional[str] = None,
+    keep_scratch: bool = False,
+    provide_skill: bool = True
 ) -> Dict[str, Any]:
     """Executes a single trial for an existing codebase directory."""
-    src_dir = Path(task["project_path"])
+    if not keep_scratch:
+        clean_scratch_directory()
+    if trial_dir.exists():
+        shutil.rmtree(trial_dir)
     trial_dir.mkdir(parents=True, exist_ok=True)
+    src_dir = Path(task["project_path"])
     trial_project_dir = trial_dir / src_dir.name
 
     # Copy project into clean trial directory
     copy_project_isolated(src_dir, trial_project_dir)
+    link_agents_directory(trial_project_dir, provide_skill=provide_skill)
 
-    prompt = f"/course-flake-generate Generate Nix flake development environments for the project repository at ."
+    if provide_skill:
+        prompt = (
+            f"/course-flake-generator Use the course-flake-generator skill to generate Nix flake "
+            f"development environments for the project repository at ."
+        )
+    else:
+        prompt = (
+            f"Generate Nix flake development environments for the project repository at ."
+        )
     cmd = [
         "agy",
         "-p", prompt,
@@ -323,6 +436,7 @@ def run_brownfield_trial(
         "input_tokens": usage.get("input_tokens", 0),
         "output_tokens": usage.get("output_tokens", 0),
         "thinking_tokens": usage.get("thinking_tokens", 0),
+        "provide_skill": provide_skill,
         "trial_dir": str(trial_project_dir)
     }
     save_trial_artifacts(trial_dir, record["conversation_id"], telemetry, record)
@@ -401,15 +515,43 @@ def discover_tasks(input_paths: List[str]) -> List[Dict[str, Any]]:
 def generate_markdown_report(report_data: Dict[str, Any], output_path: Path):
     """Generates an academic-style markdown report of the benchmark."""
     status_label = report_data.get("status", "COMPLETED")
+    run_args = report_data.get("run_args", {})
+    command_str = run_args.get("command", "")
+
     lines = [
-        "# Antigravity `course-flake-generator` Evaluation Report",
+        "# Antigravity Evaluation Report (No Custom Skill)" if not run_args.get("provide_skill", True) else "# Antigravity `course-flake-generator` Evaluation Report",
         "",
         f"**Date:** {report_data.get('timestamp', 'N/A')}  ",
         f"**Status:** `{status_label}`  ",
+    ]
+    if command_str:
+        lines.append(f"**Execution Command:** `{command_str}`  ")
+
+    lines.extend([
         f"**Samples per Task ($n$):** {report_data.get('num_samples')}  ",
         f"**Completed Tasks:** {len(report_data.get('tasks', []))}  ",
         ""
-    ]
+    ])
+
+    if run_args:
+        inputs_str = ", ".join(run_args.get("inputs", []))
+        lines.extend([
+            "### Execution Arguments & Configuration",
+            "",
+            "| Parameter | Value |",
+            "| :--- | :--- |",
+            f"| **Inputs** | `{inputs_str}` |",
+            f"| **Samples ($n$)** | `{run_args.get('num_samples')}` |",
+            f"| **$k$ Values** | `{run_args.get('k_values')}` |",
+            f"| **Output Directory** | `{run_args.get('output_dir')}` |",
+            f"| **Run Directory** | `{run_args.get('run_dir')}` |",
+            f"| **Task Filter** | `task_index={run_args.get('task_index')}, num_tasks={run_args.get('num_tasks')}, start_index={run_args.get('start_index')}` |",
+            f"| **Model Override** | `{run_args.get('model') or 'None (default)'}` |",
+            f"| **Print Timeout** | `{run_args.get('print_timeout')}` |",
+            f"| **Keep Scratch** | `{run_args.get('keep_scratch')}` |",
+            f"| **Provide Custom Skill** | `{run_args.get('provide_skill', True)}` |",
+            ""
+        ])
 
     if status_label == "INTERRUPTED":
         lines.extend([
@@ -472,8 +614,441 @@ def generate_markdown_report(report_data: Dict[str, Any], output_path: Path):
 
     output_path.write_text("\n".join(lines) + "\n")
 
+def clean_arg(val):
+    if not isinstance(val, str):
+        return val
+    try:
+        parsed = json.loads(val)
+        if isinstance(parsed, str):
+            return parsed
+    except Exception:
+        pass
+    if val.startswith('"') and val.endswith('"'):
+        return val[1:-1]
+    return val
+
+def extract_base_command(cmd_str):
+    cmd = cmd_str.strip()
+    if not cmd:
+        return "empty"
+    parts = cmd.split()
+    idx = 0
+    while idx < len(parts) and "=" in parts[idx] and not parts[idx].startswith("-"):
+        idx += 1
+    if idx < len(parts):
+        token = parts[idx].strip(";\"'")
+        if token == "env" and idx + 1 < len(parts):
+            idx += 1
+            while idx < len(parts) and "=" in parts[idx]:
+                idx += 1
+            if idx < len(parts):
+                token = parts[idx].strip(";\"'")
+        if "/" in token:
+            token = token.rstrip("/").split("/")[-1]
+        return token
+    return parts[0]
+
+def generate_tool_call_reports(target_dir: Path):
+    """Generates tool call frequency CSV summaries for a run directory."""
+    transcript_files = sorted(target_dir.glob("task_*/sample_*/transcript.jsonl"))
+    if not transcript_files:
+        return
+
+    total_tool_counts = Counter()
+    trial_data = []
+    trials_using_tool = defaultdict(set)
+    all_tools = set()
+
+    for tf in transcript_files:
+        task = tf.parent.parent.name
+        sample = tf.parent.name
+        trial_id = f"{task}/{sample}"
+
+        meta_file = tf.parent / "trial_meta.json"
+        meta = {}
+        if meta_file.exists():
+            try:
+                with open(meta_file, "r", encoding="utf-8") as mf:
+                    meta = json.load(mf)
+            except Exception:
+                pass
+
+        trial_tool_counts = Counter()
+        with open(tf, "r", encoding="utf-8") as f:
+            for line in f:
+                try:
+                    data = json.loads(line)
+                except Exception:
+                    continue
+                for tc in data.get("tool_calls", []):
+                    tname = tc.get("name")
+                    if tname:
+                        trial_tool_counts[tname] += 1
+                        total_tool_counts[tname] += 1
+                        trials_using_tool[tname].add(trial_id)
+                        all_tools.add(tname)
+
+        trial_data.append({
+            "task": task,
+            "sample": sample,
+            "passed": meta.get("passed", ""),
+            "duration_seconds": round(meta.get("duration_seconds", 0), 2) if meta.get("duration_seconds") is not None else "",
+            "total_calls": sum(trial_tool_counts.values()),
+            "tool_counts": trial_tool_counts
+        })
+
+    sorted_tools = [tool for tool, _ in total_tool_counts.most_common()]
+    total_calls_all = sum(total_tool_counts.values())
+    num_trials = len(transcript_files)
+
+    summary_csv = target_dir / "tool_call_frequency.csv"
+    with open(summary_csv, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "tool_name",
+            "call_count",
+            "percentage_of_total",
+            "trials_using_tool",
+            "trial_prevalence_pct",
+            "mean_calls_per_trial"
+        ])
+        for tool in sorted_tools:
+            count = total_tool_counts[tool]
+            pct = (count / total_calls_all) * 100 if total_calls_all > 0 else 0
+            trials_cnt = len(trials_using_tool[tool])
+            trial_pct = (trials_cnt / num_trials) * 100 if num_trials > 0 else 0
+            mean_per_trial = count / num_trials if num_trials > 0 else 0
+            writer.writerow([
+                tool,
+                count,
+                f"{pct:.2f}%",
+                trials_cnt,
+                f"{trial_pct:.2f}%",
+                f"{mean_per_trial:.2f}"
+            ])
+        writer.writerow([
+            "TOTAL",
+            total_calls_all,
+            "100.00%",
+            num_trials,
+            "100.00%",
+            f"{(total_calls_all / num_trials):.2f}" if num_trials else "0.00"
+        ])
+
+    by_trial_csv = target_dir / "tool_call_frequency_by_trial.csv"
+    with open(by_trial_csv, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        header = ["task", "sample", "passed", "duration_seconds", "total_tool_calls"] + sorted_tools
+        writer.writerow(header)
+        for td in trial_data:
+            row = [
+                td["task"],
+                td["sample"],
+                td["passed"],
+                td["duration_seconds"],
+                td["total_calls"]
+            ] + [td["tool_counts"].get(tool, 0) for tool in sorted_tools]
+            writer.writerow(row)
+
+    task_counts = defaultdict(lambda: Counter())
+    task_totals = Counter()
+    for td in trial_data:
+        task = td["task"]
+        for tool, cnt in td["tool_counts"].items():
+            task_counts[task][tool] += cnt
+            task_totals[task] += cnt
+
+    by_task_csv = target_dir / "tool_call_frequency_by_task.csv"
+    with open(by_task_csv, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        header = ["task", "total_tool_calls"] + sorted_tools
+        writer.writerow(header)
+        for task in sorted(task_counts.keys()):
+            row = [task, task_totals[task]] + [task_counts[task].get(tool, 0) for tool in sorted_tools]
+            writer.writerow(row)
+
+def generate_run_command_reports(target_dir: Path):
+    """Generates run_command frequency and sequential log CSV reports for a run directory."""
+    transcript_files = sorted(target_dir.glob("task_*/sample_*/transcript.jsonl"))
+    if not transcript_files:
+        return
+
+    all_commands = []
+    cmd_frequency = Counter()
+    cmd_trials = defaultdict(set)
+    base_cmd_frequency = Counter()
+    base_cmd_trials = defaultdict(set)
+
+    for tf in transcript_files:
+        task = tf.parent.parent.name
+        sample = tf.parent.name
+        trial_id = f"{task}/{sample}"
+
+        with open(tf, "r", encoding="utf-8") as f:
+            for line in f:
+                try:
+                    data = json.loads(line)
+                except Exception:
+                    continue
+
+                step_idx = data.get("step_index", "")
+                created_at = data.get("created_at", "")
+                for tc in data.get("tool_calls", []):
+                    if tc.get("name") == "run_command":
+                        args = tc.get("args", {})
+                        cmd = clean_arg(args.get("CommandLine", ""))
+                        cwd = clean_arg(args.get("Cwd", ""))
+                        action = clean_arg(args.get("toolAction", ""))
+                        summary = clean_arg(args.get("toolSummary", ""))
+                        base_cmd = extract_base_command(cmd)
+
+                        cmd_frequency[cmd] += 1
+                        cmd_trials[cmd].add(trial_id)
+                        base_cmd_frequency[base_cmd] += 1
+                        base_cmd_trials[base_cmd].add(trial_id)
+
+                        all_commands.append({
+                            "task": task,
+                            "sample": sample,
+                            "step_index": step_idx,
+                            "created_at": created_at,
+                            "cwd": cwd,
+                            "base_command": base_cmd,
+                            "command": cmd,
+                            "tool_action": action,
+                            "tool_summary": summary
+                        })
+
+    total_rc = len(all_commands)
+    total_trials = len(transcript_files)
+
+    exact_csv = target_dir / "run_command_frequency.csv"
+    with open(exact_csv, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "command",
+            "base_command",
+            "execution_count",
+            "percentage_of_all_run_command",
+            "unique_trials_used",
+            "trial_prevalence_pct"
+        ])
+        for cmd, count in cmd_frequency.most_common():
+            pct = (count / total_rc) * 100 if total_rc > 0 else 0
+            trials_cnt = len(cmd_trials[cmd])
+            trial_pct = (trials_cnt / total_trials) * 100 if total_trials > 0 else 0
+            writer.writerow([
+                cmd,
+                extract_base_command(cmd),
+                count,
+                f"{pct:.2f}%",
+                trials_cnt,
+                f"{trial_pct:.2f}%"
+            ])
+
+    base_csv = target_dir / "run_command_base_frequency.csv"
+    with open(base_csv, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "base_command",
+            "execution_count",
+            "percentage_of_all_run_command",
+            "unique_trials_used",
+            "trial_prevalence_pct"
+        ])
+        for base, count in base_cmd_frequency.most_common():
+            pct = (count / total_rc) * 100 if total_rc > 0 else 0
+            trials_cnt = len(base_cmd_trials[base])
+            trial_pct = (trials_cnt / total_trials) * 100 if total_trials > 0 else 0
+            writer.writerow([
+                base,
+                count,
+                f"{pct:.2f}%",
+                trials_cnt,
+                f"{trial_pct:.2f}%"
+            ])
+        writer.writerow([
+            "TOTAL",
+            total_rc,
+            "100.00%",
+            len({t for ts in base_cmd_trials.values() for t in ts}),
+            f"{(len({t for ts in base_cmd_trials.values() for t in ts}) / total_trials) * 100:.2f}%" if total_trials else "0.00%"
+        ])
+
+    log_csv = target_dir / "run_command_log.csv"
+    with open(log_csv, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "task",
+            "sample",
+            "step_index",
+            "created_at",
+            "cwd",
+            "base_command",
+            "command",
+            "tool_action",
+            "tool_summary"
+        ])
+        for entry in all_commands:
+            writer.writerow([
+                entry["task"],
+                entry["sample"],
+                entry["step_index"],
+                entry["created_at"],
+                entry["cwd"],
+                entry["base_command"],
+                entry["command"],
+                entry["tool_action"],
+                entry["tool_summary"]
+            ])
+
+def generate_mcp_tool_reports(target_dir: Path):
+    """Generates call_mcp_tool query frequency and invocation log CSV reports for a run directory."""
+    transcript_files = sorted(target_dir.glob("task_*/sample_*/transcript.jsonl"))
+    if not transcript_files:
+        return
+
+    all_mcp_calls = []
+    query_frequency = Counter()
+    query_trials = defaultdict(set)
+
+    for tf in transcript_files:
+        task = tf.parent.parent.name
+        sample = tf.parent.name
+        trial_id = f"{task}/{sample}"
+
+        with open(tf, "r", encoding="utf-8") as f:
+            for line in f:
+                try:
+                    data = json.loads(line)
+                except Exception:
+                    continue
+
+                step_idx = data.get("step_index", "")
+                created_at = data.get("created_at", "")
+                for tc in data.get("tool_calls", []):
+                    if tc.get("name") == "call_mcp_tool":
+                        raw_args = tc.get("args", {})
+                        server = clean_arg(raw_args.get("ServerName", ""))
+                        tool = clean_arg(raw_args.get("ToolName", ""))
+                        action_desc = clean_arg(raw_args.get("toolAction", ""))
+                        summary_desc = clean_arg(raw_args.get("toolSummary", ""))
+
+                        inner_args = raw_args.get("Arguments", {})
+                        if isinstance(inner_args, str):
+                            try:
+                                inner_args = json.loads(inner_args)
+                            except Exception:
+                                inner_args = {"raw": inner_args}
+                        if not isinstance(inner_args, dict):
+                            inner_args = {"raw": str(inner_args)}
+
+                        mcp_action = inner_args.get("action", "")
+                        mcp_query = inner_args.get("query", "")
+                        mcp_type = inner_args.get("type", "")
+                        mcp_channel = inner_args.get("channel", "")
+                        mcp_limit = inner_args.get("limit", "")
+
+                        query_key = (mcp_action, mcp_query, mcp_type)
+                        query_frequency[query_key] += 1
+                        query_trials[query_key].add(trial_id)
+
+                        all_mcp_calls.append({
+                            "task": task,
+                            "sample": sample,
+                            "step_index": step_idx,
+                            "created_at": created_at,
+                            "server_name": server,
+                            "mcp_tool": tool,
+                            "action": mcp_action,
+                            "query": mcp_query,
+                            "type": mcp_type,
+                            "channel": mcp_channel,
+                            "limit": mcp_limit,
+                            "tool_action": action_desc,
+                            "tool_summary": summary_desc,
+                            "arguments_json": json.dumps(inner_args, sort_keys=True),
+                        })
+
+    total_mcp = len(all_mcp_calls)
+    total_trials = len(transcript_files)
+    if total_mcp == 0:
+        return
+
+    sample_args = {}
+    for entry in all_mcp_calls:
+        key = (entry["action"], entry["query"], entry["type"])
+        if key not in sample_args:
+            sample_args[key] = entry["arguments_json"]
+
+    freq_csv = target_dir / "mcp_tool_frequency.csv"
+    with open(freq_csv, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "action",
+            "query",
+            "type",
+            "call_count",
+            "percentage_of_all_mcp_calls",
+            "unique_trials_used",
+            "trial_prevalence_pct",
+            "sample_arguments"
+        ])
+        for (action, query, qtype), count in query_frequency.most_common():
+            pct = (count / total_mcp) * 100 if total_mcp > 0 else 0
+            trials_cnt = len(query_trials[(action, query, qtype)])
+            trial_pct = (trials_cnt / total_trials) * 100 if total_trials > 0 else 0
+            writer.writerow([
+                action,
+                query,
+                qtype,
+                count,
+                f"{pct:.2f}%",
+                trials_cnt,
+                f"{trial_pct:.2f}%",
+                sample_args.get((action, query, qtype), "")
+            ])
+
+    log_csv = target_dir / "mcp_tool_log.csv"
+    with open(log_csv, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "task",
+            "sample",
+            "step_index",
+            "created_at",
+            "server_name",
+            "mcp_tool",
+            "action",
+            "query",
+            "type",
+            "channel",
+            "limit",
+            "tool_action",
+            "tool_summary",
+            "arguments_json"
+        ])
+        for entry in all_mcp_calls:
+            writer.writerow([
+                entry["task"],
+                entry["sample"],
+                entry["step_index"],
+                entry["created_at"],
+                entry["server_name"],
+                entry["mcp_tool"],
+                entry["action"],
+                entry["query"],
+                entry["type"],
+                entry["channel"],
+                entry["limit"],
+                entry["tool_action"],
+                entry["tool_summary"],
+                entry["arguments_json"]
+            ])
+
 def save_reports(
     eval_dir: Path,
+    run_dir: Path,
     task_results: List[Dict[str, Any]],
     num_samples: int,
     k_values: List[int],
@@ -481,9 +1056,12 @@ def save_reports(
     total_turns: List[int],
     total_tokens_list: List[int],
     thinking_tokens_list: List[int],
-    is_interrupted: bool = False
+    is_interrupted: bool = False,
+    run_timestamp: Optional[str] = None,
+    run_iso_timestamp: Optional[str] = None,
+    run_args: Optional[Dict[str, Any]] = None,
 ):
-    """Flushes benchmark_summary.json and benchmark_report.md immediately to disk."""
+    """Flushes benchmark summaries, markdown reports, and statistics CSVs to disk."""
     if not task_results:
         return
 
@@ -502,8 +1080,10 @@ def save_reports(
     }
 
     report_data = {
-        "timestamp": datetime.datetime.now().isoformat(),
+        "timestamp": run_iso_timestamp or datetime.datetime.now().isoformat(),
+        "run_id": run_timestamp or datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
         "status": "INTERRUPTED" if is_interrupted else "COMPLETED",
+        "run_args": run_args or {},
         "num_samples": num_samples,
         "k_values": k_values,
         "overall_scores": overall_scores,
@@ -511,12 +1091,46 @@ def save_reports(
         "tasks": task_results
     }
 
-    json_path = eval_dir / "benchmark_summary.json"
-    with open(json_path, "w") as f:
+    # 1. Primary: Save benchmark summary and report directly inside run_dir
+    run_json_path = run_dir / "benchmark_summary.json"
+    with open(run_json_path, "w", encoding="utf-8") as f:
         json.dump(report_data, f, indent=2)
 
-    md_path = eval_dir / "benchmark_report.md"
-    generate_markdown_report(report_data, md_path)
+    run_md_path = run_dir / "benchmark_report.md"
+    generate_markdown_report(report_data, run_md_path)
+
+    # 2. Generate tool call frequency and run command frequency statistics inside run_dir
+    try:
+        generate_tool_call_reports(run_dir)
+    except Exception as e:
+        print(f"Warning: Failed to generate tool call reports: {e}", file=sys.stderr)
+
+    try:
+        generate_run_command_reports(run_dir)
+    except Exception as e:
+        print(f"Warning: Failed to generate run command reports: {e}", file=sys.stderr)
+
+    try:
+        generate_mcp_tool_reports(run_dir)
+    except Exception as e:
+        print(f"Warning: Failed to generate MCP tool reports: {e}", file=sys.stderr)
+
+    # 3. Update top-level latest pointer and convenience copies in eval_dir
+    try:
+        latest_link = eval_dir / "latest"
+        if latest_link.is_symlink() or latest_link.is_file():
+            latest_link.unlink()
+        elif latest_link.is_dir():
+            shutil.rmtree(latest_link)
+        latest_link.symlink_to(run_dir.name, target_is_directory=True)
+    except Exception:
+        pass
+
+    try:
+        shutil.copy2(run_json_path, eval_dir / "benchmark_summary.json")
+        shutil.copy2(run_md_path, eval_dir / "benchmark_report.md")
+    except Exception:
+        pass
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate pass@k for course-flake-generator")
@@ -549,10 +1163,31 @@ def main():
     )
     parser.add_argument("--print-timeout", default="15m0s", help="Timeout passed to agy -p (default 15m0s)")
     parser.add_argument("--model", default=None, help="Model override for agy")
+    parser.add_argument(
+        "--keep-scratch",
+        action="store_true",
+        help="Do not delete the ~/.gemini/antigravity-cli/scratch directory before trials"
+    )
+    parser.add_argument(
+        "--no-skill", "--without-skill", "--no-custom-skill", "--without-custom-skill", "--disable-skill",
+        dest="no_skill",
+        action="store_true",
+        default=False,
+        help="Do not provide the custom course-flake-generator skill to the agent"
+    )
+    parser.add_argument(
+        "--with-skill",
+        dest="no_skill",
+        action="store_false",
+        help="Provide the custom course-flake-generator skill to the agent (default: True)"
+    )
     args = parser.parse_args()
 
     eval_dir = Path(args.output_dir).resolve()
     eval_dir.mkdir(parents=True, exist_ok=True)
+
+    if not args.keep_scratch:
+        clean_scratch_directory()
 
     tasks = discover_tasks(args.inputs)
     if not tasks:
@@ -581,14 +1216,44 @@ def main():
             end_index = len(tasks)
         tasks_to_run = list(enumerate(tasks))[args.start_index:end_index]
 
+    now = datetime.datetime.now()
+    run_timestamp = now.strftime("%Y%m%d_%H%M%S")
+    run_iso_timestamp = now.isoformat()
+
+    eval_dir = Path(args.output_dir).resolve()
+    eval_dir.mkdir(parents=True, exist_ok=True)
+
+    run_dir = eval_dir / run_timestamp
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    command_str = f"python3 {Path(sys.argv[0]).name} " + " ".join(sys.argv[1:]) if sys.argv[1:] else f"python3 {Path(sys.argv[0]).name}"
+    run_args = {
+        "command": command_str,
+        "raw_args": sys.argv[1:],
+        "inputs": args.inputs,
+        "num_samples": args.num_samples,
+        "k_values": args.k_values,
+        "output_dir": str(eval_dir),
+        "run_dir": str(run_dir),
+        "task_index": args.task_index,
+        "num_tasks": args.num_tasks,
+        "start_index": args.start_index,
+        "print_timeout": args.print_timeout,
+        "model": args.model,
+        "keep_scratch": args.keep_scratch,
+        "provide_skill": not args.no_skill
+    }
+
     print("=" * 75)
     print("ANTIGRAVITY pass@k BENCHMARK RUNNER")
+    print(f"Run Timestamp: {run_timestamp} ({run_iso_timestamp})")
     print(f"Tasks to Run: {len(tasks_to_run)} (of {len(tasks)} total) | Samples per task (n): {args.num_samples} | k: {args.k_values}")
     if args.task_index is not None:
         print(f"Target Task Index: {args.task_index} (0-based)")
     elif args.num_tasks is not None or args.start_index > 0:
         print(f"Task Range: indices {args.start_index} to {args.start_index + len(tasks_to_run) - 1} (0-based)")
-    print(f"Results Directory: {eval_dir}")
+    print(f"Provide Custom Skill: {not args.no_skill}")
+    print(f"Run Directory: {run_dir}")
     print("=" * 75)
 
     task_results = []
@@ -600,6 +1265,7 @@ def main():
     def flush_progress(interrupted: bool = False):
         save_reports(
             eval_dir=eval_dir,
+            run_dir=run_dir,
             task_results=task_results,
             num_samples=args.num_samples,
             k_values=args.k_values,
@@ -607,13 +1273,16 @@ def main():
             total_turns=total_turns,
             total_tokens_list=total_tokens_list,
             thinking_tokens_list=thinking_tokens_list,
-            is_interrupted=interrupted
+            is_interrupted=interrupted,
+            run_timestamp=run_timestamp,
+            run_iso_timestamp=run_iso_timestamp,
+            run_args=run_args
         )
 
     def sig_handler(signum, frame):
         print(f"\n\n⚠️ Process caught signal {signum}. Generating report before exit...")
         flush_progress(interrupted=True)
-        print(f"Partial results successfully saved to: {eval_dir / 'benchmark_report.md'}")
+        print(f"Partial results successfully saved to: {run_dir / 'benchmark_report.md'}")
         sys.exit(130 if signum == signal.SIGINT else 143)
 
     signal.signal(signal.SIGINT, sig_handler)
@@ -636,7 +1305,7 @@ def main():
             c = 0
 
             for sample_idx in range(args.num_samples):
-                trial_dir = eval_dir / f"task_{task_idx:02d}" / f"sample_{sample_idx:02d}"
+                trial_dir = run_dir / f"task_{task_idx:02d}" / f"sample_{sample_idx:02d}"
                 print(f"  -> Sample {sample_idx + 1}/{args.num_samples}... ", end="", flush=True)
 
                 if ttype == "brownfield":
@@ -644,7 +1313,9 @@ def main():
                         task=task,
                         trial_dir=trial_dir,
                         print_timeout=args.print_timeout,
-                        model=args.model
+                        model=args.model,
+                        keep_scratch=args.keep_scratch,
+                        provide_skill=not args.no_skill
                     )
                 else:
                     res = run_greenfield_trial(
@@ -652,7 +1323,9 @@ def main():
                         dependencies=task.get("dependency_list", []),
                         trial_dir=trial_dir,
                         print_timeout=args.print_timeout,
-                        model=args.model
+                        model=args.model,
+                        keep_scratch=args.keep_scratch,
+                        provide_skill=not args.no_skill
                     )
 
                 samples.append(res)
@@ -710,8 +1383,18 @@ def main():
         print(f"  Avg Duration: {avg_dur:.1f}s")
         print(f"  Avg Tokens  : {avg_tok:,.0f}")
 
-    print(f"\nJSON results saved to: {eval_dir / 'benchmark_summary.json'}")
-    print(f"Markdown report saved to: {eval_dir / 'benchmark_report.md'}")
+    print(f"\nTimestamped run directory created at:")
+    print(f"  - {run_dir}")
+    print(f"Artifacts and statistics stored inside:")
+    print(f"  - Tasks & Samples: {run_dir}/task_XX/sample_YY")
+    print(f"  - Summary JSON   : {run_dir / 'benchmark_summary.json'}")
+    print(f"  - Markdown Report: {run_dir / 'benchmark_report.md'}")
+    print(f"  - Tool Telemetry : {run_dir / 'tool_call_frequency.csv'}")
+    print(f"  - Command Log    : {run_dir / 'run_command_log.csv'}")
+    print(f"Latest links updated at:")
+    print(f"  - {eval_dir / 'latest'} -> {run_timestamp}")
+    print(f"  - {eval_dir / 'benchmark_summary.json'}")
+    print(f"  - {eval_dir / 'benchmark_report.md'}")
     print("=" * 75)
 
 if __name__ == "__main__":

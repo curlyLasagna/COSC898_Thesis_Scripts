@@ -1,0 +1,4 @@
+.mysql/
+result
+.direnv/
+.devenv/

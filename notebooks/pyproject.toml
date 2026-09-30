@@ -1,0 +1,22 @@
+[project]
+name = "notebooks"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Luis", email = "luis.gcodes@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "altair>=6.3.0",
+    "marimo>=0.24.2",
+    "numpy>=2.5.3",
+    "pandas>=3.0.5",
+]
+
+[project.scripts]
+notebooks = "notebooks:main"
+
+[build-system]
+requires = ["uv_build>=0.12.11,<0.13.0"]
+build-backend = "uv_build"

@@ -48,9 +48,17 @@ def extract_base_command(cmd_str):
     return parts[0]
 
 def main():
+    import sys
     base_dir = Path(__file__).resolve().parent.parent
-    eval_dir = base_dir / "eval_results"
+    if len(sys.argv) > 1:
+        eval_dir = Path(sys.argv[1]).resolve()
+    elif (base_dir / "eval_results" / "latest").exists():
+        eval_dir = (base_dir / "eval_results" / "latest").resolve()
+    else:
+        eval_dir = base_dir / "eval_results"
+
     transcript_files = sorted(eval_dir.glob("task_*/sample_*/transcript.jsonl"))
+    print(f"Target directory: {eval_dir}")
 
     all_commands = []
     cmd_frequency = Counter()

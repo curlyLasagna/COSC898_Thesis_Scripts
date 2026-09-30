@@ -14,7 +14,6 @@
   packages = with pkgs; [
     nixfmt
     opencode
-    lima
     d2
     jq
   ];
