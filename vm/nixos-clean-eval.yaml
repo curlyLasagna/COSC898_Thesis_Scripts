@@ -1,0 +1,21 @@
+# A deliberately unmounted NixOS guest used to replay generated flakes.
+# Artifacts enter only through `limactl cp` and are unpacked under /tmp.
+images:
+  - location: "https://github.com/nixos-lima/nixos-lima/releases/download/v0.0.5/nixos-lima-v0.0.5-aarch64.qcow2"
+    arch: "aarch64"
+    digest: "sha512:e1daeb0dcec65c624253603ab5ec06f0831b0940cd95a88903f9bfd0ee4009b2c45806b868674c7e8cb12941e50799e85d710fc0e9ad659059108cebbc4d19c1"
+
+mounts: []
+cpus: 4
+memory: 8GiB
+disk: 60GiB
+
+portForwards:
+  - proto: udp
+    guestPort: 68
+    guestIP: 0.0.0.0
+    ignore: true
+
+containerd:
+  system: false
+  user: false
