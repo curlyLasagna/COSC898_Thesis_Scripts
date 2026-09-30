@@ -13,7 +13,6 @@
   # https://devenv.sh/packages/
   packages = with pkgs; [
     nixfmt
-    opencode
     d2
     jq
   ];
@@ -25,12 +24,6 @@
     lsp.enable = true;
   };
 
-  languages.javascript = {
-    enable = true;
-    npm.enable = true;
-  };
-
-  languages.go.enable = true;
   # https://devenv.sh/processes/
   # processes.dev.exec = "${lib.getExe pkgs.watchexec} -n -- ls -la";
 
