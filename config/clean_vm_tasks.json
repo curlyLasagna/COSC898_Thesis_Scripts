@@ -1,0 +1,25 @@
+{
+  "0": {
+    "headless_commands": ["java -version", "javac -version", "code --version"],
+    "excluded_behaviors": ["Launching VS Code and verifying editor extensions interactively"]
+  },
+  "1": {
+    "headless_commands": ["flutter --version"],
+    "excluded_behaviors": ["Installing Android, iOS, or browser toolchains reported by flutter doctor"]
+  },
+  "2": {
+    "headless_commands": ["python3 --version && uv --version", "if [ -f pyproject.toml ]; then uv sync; fi"],
+    "excluded_behaviors": []
+  },
+  "3": {"headless_commands": ["gcc --version", "g++ --version", "cmake --version", "make --version", "if [ -f CMakeLists.txt ]; then cmake -S . -B .clean-vm-build && cmake --build .clean-vm-build; fi"], "excluded_behaviors": []},
+  "4": {"headless_commands": ["clang --version", "clang++ --version", "cmake --version", "make --version", "if [ -f CMakeLists.txt ]; then cmake -S . -B .clean-vm-build && cmake --build .clean-vm-build; fi"], "excluded_behaviors": []},
+  "5": {"headless_commands": ["node --version && npm --version", "if [ -f package.json ]; then npm install; fi"], "excluded_behaviors": []},
+  "6": {"headless_commands": ["rustc --version && cargo --version", "if [ -f Cargo.toml ]; then cargo build; fi"], "excluded_behaviors": []},
+  "7": {"headless_commands": ["go version", "if [ -f go.mod ]; then go test ./...; fi"], "excluded_behaviors": []},
+  "8": {"headless_commands": ["dotnet --info", "if find . -maxdepth 2 -name '*.csproj' -print -quit | grep -q .; then dotnet restore && dotnet build; fi"], "excluded_behaviors": []},
+  "9": {"headless_commands": ["ruby --version && bundle --version", "if [ -f Gemfile ]; then bundle install; fi"], "excluded_behaviors": []},
+  "10": {"headless_commands": ["R --version"], "excluded_behaviors": []},
+  "11": {"headless_commands": ["R --version", "rstudio --version"], "excluded_behaviors": ["Launching RStudio and changing graphical settings"]},
+  "12": {"headless_commands": ["mysqld --version && mysql --version"], "excluded_behaviors": ["Persistent server startup, root-password assignment, and interactive login"]},
+  "13": {"headless_commands": ["mysql --version", "mysql-workbench --version"], "excluded_behaviors": ["Launching MySQL Workbench and creating a graphical connection"]}
+}
